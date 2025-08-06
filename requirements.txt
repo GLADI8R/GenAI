@@ -1,0 +1,9 @@
+python-dotenv
+pandas
+langchain
+langchain-openai
+langchain-mongodb
+langchain-community
+langchain-experimental
+plotly
+nbformat>=4.2.0

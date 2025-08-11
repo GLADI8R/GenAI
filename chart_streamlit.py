@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 load_dotenv()
 
 
-def create_chart(prompt: str):
+def create_chart(user_prompt: str):
     llm = AzureChatOpenAI(
         openai_api_key=os.getenv("OPENAI_API_KEY"),
         api_version=os.getenv("OPENAI_API_VERSION"),
@@ -29,19 +29,18 @@ def create_chart(prompt: str):
     llm_with_tools = llm.bind_tools([tool], tool_choice=tool.name)
     parser = JsonOutputKeyToolsParser(key_name=tool.name, first_tool_only=True)
 
-    system = f"""You have access to a pandas dataframe `df`.
+    system = f"""You only have access to a pandas dataframe `df`.
     Here is the output of `df.head()`:
 
     \`\`\`
     {df.head().to_markdown()}
     \`\`\`
 
-    Given a user question, write the Python code to answer it.
-    The Python code should use the `df` dataframe and generate a Plotly figure object using the dataframe `df` only.
+    Given a user question, write the Python code to generate a Plotly figure object using the dataframe `df` only.
     Only create any new variables for intermediate steps required for plotting.
     Do NOT generate or simulate new data.
-    Return ONLY the valid Python code and nothing else.
-    Do not call `fig.show()`, `plt.show()`, or call the function.
+    Return ONLY the valid Python code with Plotly figure object using `df` dataframe and nothing else.
+    Do not call `fig.show()`, `plt.show()` functions.
     Don't assume you have access to any libraries other than built-in Python ones, pandas, and plotly.
     """
 
@@ -50,9 +49,11 @@ def create_chart(prompt: str):
         ("human", "{question}")
     ])
     chain = prompt | llm_with_tools | parser
-    result = chain.invoke({"question": prompt}, verbose=True)
-
+    result = chain.invoke({"question": user_prompt}, verbose=True)
+    print("\n####################################\n")
+    print(user_prompt)
     print(result['query'])
+    print("\n####################################\n")
     fig = tool.invoke(result['query'])
     return fig
 

@@ -51,7 +51,7 @@ class SQLAgent():
             prompt = query_prompt_template.invoke(
                 {
                     "dialect": self.db.dialect,
-                    "top_k": 5,
+                    "top_k": 100,
                     "db_context": self.db.get_table_info(),
                     "input": question,
                 },
@@ -60,7 +60,7 @@ class SQLAgent():
             structured_llm = self.llm.with_structured_output(QueryOutput)
             result = structured_llm.invoke(prompt, config=config_memory)
             print(" Generated query successfully.")
-            return {"query": result["query"]}
+            return {"query": result["query"], "columns": result["columns"]}
         except Exception as e:
             print(" ❌ Query Generation failure:\n", e)
             return {"query": ""}
@@ -96,27 +96,27 @@ class SQLAgent():
             execute_query_tool = QuerySQLDatabaseTool(
                 db=self.db
             )
-            return {"result": execute_query_tool.invoke(state["query"],config=config_memory)}
+            return {"result": execute_query_tool.run(state["query"],config=config_memory)}
         except Exception as e:
             print(" ❌ Query Execution failure:\n", e)
             return {"result": ""}
 
 
 # Example usage of the SQLAgent
-sql_agent = SQLAgent(llm=llm)
-state = State()
-state["question"] = test_query
+# sql_agent = SQLAgent(llm=llm)
+# state = State()
+# state["question"] = "What are the names of users?"
 
-result = sql_agent.write_query(state)
-state.update(result)
+# result = sql_agent.write_query(state)
+# state.update(result)
 # print("✅ write_query output:", result['query'])
 
-# Check SQL query
-result1 = sql_agent.check_query(state)
-state.update(result1)
-# print("✅ check_query output:", result1)
+# # Check SQL query
+# result1 = sql_agent.check_query(state)
+# state.update(result1)
+# # print("✅ check_query output:", result1)
 
-# Execute SQL query
-result2 = sql_agent.execute_query(state)
-state.update(result2)
-print("✅ execute_query output:", result2["result"])
+# # Execute SQL query
+# result2 = sql_agent.execute_query(state)
+# state.update(result2)
+# print("✅ execute_query output:", result2["result"], "\n Columns:", state.get("columns", []))

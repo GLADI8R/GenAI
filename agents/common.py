@@ -12,12 +12,14 @@ class State(TypedDict , total=False ):  # <--- add total=False This tells Python
 
     messages: Annotated[list, add_messages]
     question: str
+    intent: str
     query: str
+    columns: list
     result: str
     answer: str  
-    output : str
-    chart_type : str
-    from_query : bool
+    output: str
+    chart_type: str
+    from_query: bool
     query_retry: int
 
 
@@ -26,3 +28,4 @@ class QueryOutput(TypedDict):
     """Generated DB query."""
 
     query: Annotated[str, ..., "Syntactically valid database query."]
+    columns: Annotated[list, ..., "List of column names in the query result."]

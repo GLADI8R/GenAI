@@ -6,8 +6,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_mongodb.agent_toolkit import MongoDBDatabase
 from langchain_mongodb.agent_toolkit.tool import QueryMongoDBCheckerTool, QueryMongoDBDatabaseTool
 from pymongo import MongoClient
-from agents import llm
-from agents.templates import classification_prompt, mongodb_query_generator_prompt, user_prompt, test_query
+from agents.templates import mongodb_query_generator_prompt, user_prompt, test_query
 from agents.common import State, QueryOutput
 
 
@@ -18,21 +17,6 @@ load_dotenv()
 config_memory = {"configurable": {"thread_id": "1"}}
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB_NAME = "sales"
-
-
-def detect_intent(user_input: str) -> str:
-    try:
-        prompt = classification_prompt.invoke({"input": user_input},config=config_memory)
-        result = llm.invoke(prompt ,config=config_memory)
-        print(f"result ** {result}")
-        intent = result.content.strip().lower()
-        print(f" ********* detect_intent  intent value is **{intent}**   ")
-        if intent not in ["database", "chart"]:
-            return "other"
-        return intent
-    except Exception as e:
-        print("❌ Intent detection failed:", e)
-        return "other"
 
 
 class MongoDBAgent():
@@ -68,7 +52,7 @@ class MongoDBAgent():
 
             prompt = query_prompt_template.invoke(
                 {
-                    "top_k": 5,
+                    "top_k": 100,
                     "db_context": self.db.get_context(),
                     "input": question,
                 },
@@ -122,19 +106,19 @@ class MongoDBAgent():
 
 
 # Example usage of the MongoDBAgent
-mongodb_agent = MongoDBAgent(llm=llm)
-state = State()
-state["question"] = test_query
-result = mongodb_agent.write_query(state)
-state.update(result)
-# print("✅ write_query output:", result['query'])
+# mongodb_agent = MongoDBAgent(llm=llm)
+# state = State()
+# state["question"] = test_query
+# result = mongodb_agent.write_query(state)
+# state.update(result)
+# # print("✅ write_query output:", result['query'])
 
-# Check query
-result1 = mongodb_agent.check_query(state)
-state.update(result1)
-# print("✅ check_query output:", result1)
+# # Check query
+# result1 = mongodb_agent.check_query(state)
+# state.update(result1)
+# # print("✅ check_query output:", result1)
 
-# Execute query
-result2 = mongodb_agent.execute_query(state)
-state.update(result2)
-print("✅ execute_query output:", result2["result"])
+# # Execute query
+# result2 = mongodb_agent.execute_query(state)
+# state.update(result2)
+# print("✅ execute_query output:", result2["result"], "/n", type(result2["result"]))

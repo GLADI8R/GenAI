@@ -46,14 +46,14 @@ if option != "-":
             st.markdown(prompt)
 
         intent = detect_intent(prompt)
-        response = asyncio.run(orchestrate(
+        response, code = asyncio.run(orchestrate(
             db_choice=option,
             query=prompt,
             intent=intent
         ))
         if intent =="chart":
-            msg = {"role": "assistant", "type": intent, "content": response}
-            st.session_state.messages.append({"role": "assistant", "type": intent, "content": response})
+            msg = {"role": "assistant", "type": intent, "content": response, "code": code}
+            st.session_state.messages.append({"role": "assistant", "type": intent, "content": response, "code": code})
         else:
              st.session_state.messages.append({"role": "assistant", "type": intent, "content": response})
 

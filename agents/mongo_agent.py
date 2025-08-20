@@ -24,6 +24,8 @@ mongo_mcp = FastMCP(name="MongoDBAgent", host="0.0.0", port=8002)
 
 
 class MongoDBAgent():
+    """MongoDB Agent to handle MongoDB queries."""
+
     def __init__(self, llm):
         """Initialize the MongoDB Agent."""
 
@@ -39,7 +41,19 @@ class MongoDBAgent():
 
 
     def write_query(self, state: State) -> dict:
-        """Generate MongoDB query to fetch information."""
+        """
+        Generate MongoDB query to fetch information.
+        This method uses a language model to generate a MongoDB query based on the user's question.
+
+        Args:
+            state (State): The state containing the user prompt and other information.
+
+        Returns:
+            dict: A dictionary containing the generated MongoDB query.
+
+        Raises:
+            ValueError: If the user prompt is not provided or if the query generation fails.
+        """
 
         print(f" Generating query..." )
         try:
@@ -72,7 +86,19 @@ class MongoDBAgent():
 
 
     def check_query(self, state: State) -> dict:
-        """Check MongoDB query for correctness."""
+        """
+        Check MongoDB query for correctness.
+        This method uses a language model to validate the generated MongoDB query.
+
+        Args:
+            state (State): The state containing the generated MongoDB query.
+
+        Returns:
+            dict: A dictionary containing the result of the query check.
+
+        Raises:
+            ValueError: If the query is not valid or if the query check fails.
+        """
 
         try:
             print(" Checking query...")
@@ -96,7 +122,19 @@ class MongoDBAgent():
 
 
     def execute_query(self, state: State) -> dict:
-        """Execute MongoDB query."""
+        """
+        Execute MongoDB query.
+        This method executes the validated MongoDB query and returns the result.
+        
+        Args:
+            state (State): The state containing the validated MongoDB query.
+
+        Returns:
+            dict: A dictionary containing the result of the executed query.
+
+        Raises:
+            ValueError: If the query execution fails.
+        """
         try:
             print(" Executing query...")
             execute_query_tool = QueryMongoDBDatabaseTool(
@@ -110,7 +148,14 @@ class MongoDBAgent():
 
 @mongo_mcp.tool()
 def run_mongo(query: str) -> State:
-    """Run a MongoDB query."""
+    """
+    Run a MongoDB query.
+    This function initializes the MongoDBAgent, generates a query based on the user's input,
+    checks the query for correctness, and executes it.
+
+    Args:
+        query (str): The user's question or prompt for the MongoDB query.
+    """
     
     mongodb_agent = MongoDBAgent(llm=llm)
     state = State()

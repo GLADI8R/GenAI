@@ -23,6 +23,8 @@ sql_mcp = FastMCP(name="SQLAgent", host="0.0.0.0", port=8001)
 
 
 class SQLAgent():
+    """SQL Agent to handle SQL queries."""
+
     def __init__(self, llm):
         """Initialize the SQL Agent."""
 
@@ -35,7 +37,19 @@ class SQLAgent():
 
 
     def write_query(self, state: State) -> dict:
-        """Generate SQL query to fetch information."""
+        """
+        Generate SQL query to fetch information.
+        This method uses a language model to generate a SQL query based on the user's question.
+
+        Args:
+            state (State): The state containing the user prompt and other information.
+
+        Returns:
+            dict: A dictionary containing the generated SQL query and columns.
+
+        Raises:
+            ValueError: If the user prompt is not provided or if the query generation fails.
+        """
 
         print(f" Generating query..." )
         try:
@@ -69,7 +83,19 @@ class SQLAgent():
 
 
     def check_query(self, state: State) -> dict:
-        """Check SQL query for correctness."""
+        """
+        Check SQL query for correctness.
+        This method uses a language model to validate the generated SQL query.
+
+        Args:
+            state (State): The state containing the generated SQL query.
+        
+        Returns:
+            dict: A dictionary containing the result of the query check.
+        
+        Raises:
+            ValueError: If the query is not provided or if the query check fails.
+        """
 
         try:
             print(" Checking query...")
@@ -92,7 +118,16 @@ class SQLAgent():
 
 
     def execute_query(self, state: State) -> dict:
-        """Execute SQL query."""
+        """
+        Execute SQL query.
+        This method executes the validated SQL query and returns the result.
+
+        Args:
+            state (State): The state containing the validated SQL query.
+
+        Returns:
+            dict: A dictionary containing the result of the executed query.
+        """
         try:
             print(" Executing query...")
             execute_query_tool = QuerySQLDatabaseTool(
@@ -105,6 +140,12 @@ class SQLAgent():
 
 @sql_mcp.tool()
 def run_sql(query: str) -> State:
+    """
+    Run SQL query using the SQLAgent.
+    
+    Args:
+        query (str): The SQL query to be executed.
+    """
 
     # Example usage of the SQLAgent
     sql_agent = SQLAgent(llm=llm)

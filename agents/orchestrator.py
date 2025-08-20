@@ -13,6 +13,18 @@ config = {
 client = Client(config)        
 
 async def orchestrate(db_choice: str, query: str, intent: str):
+    """
+    Orchestrates the query execution based on the selected database and intent.
+
+    Args:
+        db_choice (str): The database choice ("SQL", "MongoDB", or "File Upload").
+        query (str): The query to execute.
+        intent (str): The intent of the query (e.g., "chart", "dataframe").
+    
+    Returns:
+        pd.DataFrame or plotly.graph_objects.Figure: The result of the query execution.
+        str: The generated Python code for chart creation if intent is "chart".
+    """
 
     df, fig = None, None
     async with client:
@@ -40,7 +52,9 @@ async def orchestrate(db_choice: str, query: str, intent: str):
                 "user_prompt": query,
                 "df": df.to_dict(orient="records")
             })
-            fig = pio.from_json(response.content[0].text)
-        return fig
+            evaulated_response = eval(response.content[0].text)
+            fig = pio.from_json(evaulated_response[0])
+            query_code = evaulated_response[1]
+        return fig, query_code
     else:
-        return df
+        return df, None

@@ -35,6 +35,8 @@ if option != "-":
         else:
             if msg["type"] == "chart":
                 st.plotly_chart(msg["content"], use_container_width=True)
+                with st.expander("Show Python Code"):
+                    st.code(msg["code"], language="python")
             else:
                 st.dataframe(msg["content"])
 
@@ -60,6 +62,8 @@ if option != "-":
         with st.chat_message("assistant"):
             if intent == "chart":
                 st.plotly_chart(response, use_container_width=True)
+                with st.expander("Show Python Code"):
+                    st.code(code, language="python")
             elif intent == "database":
                 st.dataframe(response)
             else:

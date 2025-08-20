@@ -3,8 +3,8 @@ import pandas as pd
 import streamlit as st
 from agents import llm
 from agents.chart_agent import create_chart
-from agents.sqlite_agent import SQLAgent
-from agents.mongodb_agent import MongoDBAgent
+from agents.sql_agent import SQLAgent
+from agents.mongo_agent import MongoDBAgent
 from agents.common import State, detect_intent
 
 

@@ -1,14 +1,14 @@
 import os
 import warnings
 from dotenv import load_dotenv
-import ast
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.tools.sql_database.tool import QuerySQLCheckerTool, QuerySQLDatabaseTool
 from sqlalchemy import create_engine
+from fastmcp import FastMCP
 from agents import llm
-from agents.templates import sql_query_generator_prompt, user_prompt, test_query
+from agents.templates import sql_query_generator_prompt, user_prompt
 from agents.common import State, QueryOutput
 
 
@@ -18,6 +18,8 @@ load_dotenv()
 
 config_memory = {"configurable": {"thread_id": "1"}}
 SQL_URI = os.getenv("SQL_URI")
+
+sql_mcp = FastMCP(name="SQLAgent", host="0.0.0.0", port=8001)
 
 
 class SQLAgent():
@@ -83,7 +85,7 @@ class SQLAgent():
             if result[1:4] == "sql" or result[3:6] == "sql":
                 is_valid = True
 
-            return {"result": result, "query_valid": is_valid}
+            return {"result": result}
         except Exception as e:
             print(" ❌ Query Check failure:\n", e)
             return {"result": ""}
@@ -101,22 +103,29 @@ class SQLAgent():
             print(" ❌ Query Execution failure:\n", e)
             return {"result": ""}
 
+@sql_mcp.tool()
+def run_sql(query: str) -> State:
 
-# Example usage of the SQLAgent
-# sql_agent = SQLAgent(llm=llm)
-# state = State()
-# state["question"] = "What are the names of users?"
+    # Example usage of the SQLAgent
+    sql_agent = SQLAgent(llm=llm)
+    state = State()
+    state["question"] = query
 
-# result = sql_agent.write_query(state)
-# state.update(result)
-# print("✅ write_query output:", result['query'])
+    result = sql_agent.write_query(state)
+    state.update(result)
+    # print("✅ write_query output:", result['query'])
 
-# # Check SQL query
-# result1 = sql_agent.check_query(state)
-# state.update(result1)
-# # print("✅ check_query output:", result1)
+    # Check SQL query
+    result1 = sql_agent.check_query(state)
+    state.update(result1)
+    # print("✅ check_query output:", result1)
 
-# # Execute SQL query
-# result2 = sql_agent.execute_query(state)
-# state.update(result2)
-# print("✅ execute_query output:", result2["result"], "\n Columns:", state.get("columns", []))
+    # Execute SQL query
+    result2 = sql_agent.execute_query(state)
+    state.update(result2)
+    # print("✅ execute_query output:", result2["result"], "\n Columns:", state.get("columns", []))
+
+    return state
+
+if __name__ == "__main__":
+    sql_mcp.run(transport="http")

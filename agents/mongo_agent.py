@@ -6,7 +6,9 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_mongodb.agent_toolkit import MongoDBDatabase
 from langchain_mongodb.agent_toolkit.tool import QueryMongoDBCheckerTool, QueryMongoDBDatabaseTool
 from pymongo import MongoClient
-from agents.templates import mongodb_query_generator_prompt, user_prompt, test_query
+from fastmcp import FastMCP
+from agents import llm
+from agents.templates import mongodb_query_generator_prompt, user_prompt
 from agents.common import State, QueryOutput
 
 
@@ -17,6 +19,8 @@ load_dotenv()
 config_memory = {"configurable": {"thread_id": "1"}}
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB_NAME = "sales"
+
+mongo_mcp = FastMCP(name="MongoDBAgent", host="0.0.0", port=8002)
 
 
 class MongoDBAgent():
@@ -85,7 +89,7 @@ class MongoDBAgent():
             if result.content[1:7] == "python" or result.content[3:9] == "python" or result.content[1:5] == "json" or result.content[3:7] == "json":
                 is_valid = True
 
-            return {"result": result, "query_valid": is_valid}
+            return {"result": result}
         except Exception as e:
             print(" ❌ Query Check failure:\n", e)
             return {"result": ""}
@@ -104,21 +108,29 @@ class MongoDBAgent():
             print(" ❌ Query Execution failure:\n", e)
             return {"result": ""}
 
+@mongo_mcp.tool()
+def run_mongo(query: str) -> State:
+    """Run a MongoDB query."""
+    
+    mongodb_agent = MongoDBAgent(llm=llm)
+    state = State()
+    state["question"] = query
 
-# Example usage of the MongoDBAgent
-# mongodb_agent = MongoDBAgent(llm=llm)
-# state = State()
-# state["question"] = test_query
-# result = mongodb_agent.write_query(state)
-# state.update(result)
-# # print("✅ write_query output:", result['query'])
+    result = mongodb_agent.write_query(state)
+    state.update(result)
+    # print("✅ write_query output:", result['query'])
 
-# # Check query
-# result1 = mongodb_agent.check_query(state)
-# state.update(result1)
-# # print("✅ check_query output:", result1)
+    # Check query
+    result1 = mongodb_agent.check_query(state)
+    state.update(result1)
+    # print("✅ check_query output:", result1)
 
-# # Execute query
-# result2 = mongodb_agent.execute_query(state)
-# state.update(result2)
-# print("✅ execute_query output:", result2["result"], "/n", type(result2["result"]))
+    # Execute query
+    result2 = mongodb_agent.execute_query(state)
+    state.update(result2)
+    # print("✅ execute_query output:", result2["result"], "/n", type(result2["result"]))
+
+    return state
+
+if __name__ == "__main__":
+    mongo_mcp.run(transport="http")
